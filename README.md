@@ -15,7 +15,7 @@ KernInfra is built to address the following engineering issues:
 ## How does it look like
 
 - Before KernInfra: R/W `vnode->v_mount->mnt_flag`
-```
+```cpp
     printf("got vp: %llx\n", orig);
     uint64_t mount = kernel_read64(orig + off_v_mount);
     uint64_t kxpacd_mount = kxpacd(mount);
@@ -23,11 +23,10 @@ KernInfra is built to address the following engineering issues:
     uint32_t oriflag = kernel_read32(kxpacd_mount + off_mnt_flag);
     printf("  %s: oriflag %x\n", path, oriflag);
     kernel_write32(kxpacd_mount + off_mnt_flag, newflag);
-}
 ```
 
 - After KernInfra: RW `proc->task->map->page_shift` ( also compatible with Intellisense ;) )
-```
+```cpp
     auto curp = proc_t_p(current_proc());
     auto vPageShift = curp.task()._map().page_shift();
     DLOG("original page shift: %d", vPageShift.load());
@@ -39,14 +38,14 @@ KernInfra is built to address the following engineering issues:
 
 1. `git submodule add https://github.com/NyaMisty/kerninfra`
 2. insert these lines into theos makefile
-    ```
+    ```Makefile
     XXXX_SUBPROJECTS = kerninfra
     XXXX_LDFLAGS += -Lkerninfra/libs
     XXXX_CCFLAGS += -std=c++2a
     ```
 3. include it: `#include "kerninfra/kerninfra.hpp"`
 4. call init func: 
-    ```
+    ```cpp
     if (!!init_kerninfra()) {
         fprintf(stderr, "Failed to init kerninfra!!\n");
         exit(1);
