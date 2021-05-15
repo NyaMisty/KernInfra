@@ -36,7 +36,7 @@ KernInfra is built to address the following engineering issues:
 
 ## Installation & Usage
 
-1. `git submodule add https://github.com/NyaMisty/kerninfra`
+1. `git submodule add https://github.com/NyaMisty/kerninfra && git submodule update --init --recursive`
 2. insert these lines into theos makefile
     ```Makefile
     XXXX_SUBPROJECTS = kerninfra
