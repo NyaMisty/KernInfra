@@ -16,25 +16,37 @@ void check_addr_valid(addr_t addr, size_t size) {
     }
 }
 
-int t1sz_boot = 25;
+constexpr int t1sz_boot = 25;
+constexpr addr_t PACMASK = ~((1ULL << (64U - t1sz_boot)) - 1U);
 uint64_t kxpacd(uint64_t pacPtr) {
     if(t1sz_boot != 0) {
-		pacPtr |= ~((1ULL << (64U - t1sz_boot)) - 1U);
+		pacPtr |= PACMASK;
 	}
     return pacPtr;
+}
+
+
+addr_t remote_addr_processor_impl(addr_t addr) {
+    if (!addr) {
+        return addr;
+    }
+    if (!(addr & PACMASK)) {
+        throw std::out_of_range(fmt::format("kernel got out-of-range pointer: {:#x}", addr));
+    }
+    return kxpacd(addr);
 }
 
 addr_t remote_addr_reader_impl(addr_t addr) {
     check_addr_valid(addr, sizeof(addr_t));
     addr_t ret = kernel_read64(addr);
-    addr_t pacret = kxpacd(ret);
-    return pacret;
+    return remote_addr_processor_impl(ret);
 }
 
 void remote_addr_writer_impl(addr_t addr, addr_t val) {
     check_addr_valid(addr, sizeof(addr_t));
-    addr_t pacaddr = kxpacd(addr);
-    kernel_write64(pacaddr, val);
+    //addr_t pacaddr = kxpacd(addr);
+    //kernel_write64(pacaddr, val);
+    kernel_write64(addr, val);
 }
 
 void remote_reader_impl(addr_t addr, void *buf, size_t size) {
@@ -51,3 +63,4 @@ void (*remote_reader)(addr_t addr, void *buf, size_t size) = remote_reader_impl;
 void (*remote_writer)(addr_t addr, const void *buf, size_t size) = remote_writer_impl;
 addr_t (*addr_reader)(addr_t addr) = remote_addr_reader_impl;
 void (*addr_writer)(addr_t addr, addr_t val) = remote_addr_writer_impl;
+addr_t (*addr_processor)(addr_t addr) = remote_addr_processor_impl;

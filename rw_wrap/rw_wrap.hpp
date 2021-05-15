@@ -14,6 +14,7 @@ extern void (*remote_reader)(addr_t addr, void *buf, size_t size);
 extern void (*remote_writer)(addr_t addr, const void *buf, size_t size);
 extern addr_t (*addr_reader)(addr_t addr);
 extern void (*addr_writer)(addr_t addr, addr_t val);
+extern addr_t (*addr_processor)(addr_t addr);
 
 template<class P, bool isField>
 struct RemotePointer {};
@@ -30,7 +31,7 @@ struct RemotePointer<P, true> {
         if (m_pointer == BADADDR) {
             //printf("kread(parent.addr() + m_off)\n");
             //m_pointer = addr_reader(m_parent.addr() + m_off);
-            m_pointer = m_parent.load() + m_off;
+            m_pointer = m_parent.load_addr() + m_off;
             return m_pointer;
         } else {
             return m_pointer;
@@ -38,6 +39,16 @@ struct RemotePointer<P, true> {
     }
 
     addr_t load() {
+        addr_t ret;
+        remote_reader(addr(), &ret, sizeof(ret));
+        return ret;
+        //return addr_reader(addr());
+    }
+
+    addr_t load_addr() {
+        // addr_t ret;
+        // remote_reader(addr(), &ret, sizeof(ret));
+        // return ret;
         return addr_reader(addr());
     }
 
@@ -50,6 +61,7 @@ template<class P>
 struct RemotePointer<P, false> {
     addr_t m_pointer;
     
+    // for root pointer, we ignore pac
     RemotePointer(addr_t pointer) : m_pointer(pointer) {}
 
     addr_t addr() {
@@ -57,6 +69,10 @@ struct RemotePointer<P, false> {
     }
 
     addr_t load() {
+        return addr();
+    }
+
+    addr_t load_addr() {
         return addr();
     }
 };
@@ -78,13 +94,26 @@ struct RemoteSimpleType : public RemotePointer<P, isField> {
 };
 
 template<class P = void, bool isField = false>
+using kuint8_t = RemoteSimpleType<uint8_t, P, isField>;
+
+template<class P = void, bool isField = false>
+using kuint16_t = RemoteSimpleType<uint16_t, P, isField>;
+
+template<class P = void, bool isField = false>
 using kuint32_t = RemoteSimpleType<uint32_t, P, isField>;
 
 template<class P = void, bool isField = false>
 using kuint64_t = RemoteSimpleType<uint64_t, P, isField>;
 
+
+template<class P, bool isField>
+struct RemoteRawPointer : public RemotePointer<P, isField> {
+    using RemotePointer<P, isField>::RemotePointer;
+    using RemotePointer<P, isField>::addr;
+};
+
 template<class P = void, bool isField = false>
-using kpointer_t = RemoteSimpleType<addr_t, P, isField>;
+using kpointer_t = RemoteRawPointer<P, isField>;
 
 #define THISTYPE typename std::remove_pointer<decltype(this)>::type
 
