@@ -53,12 +53,13 @@ KernInfra is built to address the following engineering issues:
         DLOG("successfully initialized kerninfra!");
     }
     ```
-5. profit~, see my fouldecrypt for a simple example
+5. profit~, see my fouldecrypt for a simple example, documents are located in docs/ directory ;)
 
 ## Contribute
 
 - You can add more offset into our code, it will benefit EVERYONE. (And maybe we can steal some offset from Odyssey :P)
 - You can implement more kernel helper functions
+- see more in docs/HACKING.md
 
 ## Credits
 - includes/fmt: it's fmt.dev's fmt, thanks a lot
