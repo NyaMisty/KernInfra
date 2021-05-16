@@ -12,7 +12,7 @@ typedef enum {
     KERNLOG_FUNC,
     KERNLOG_INIT,
     KERNLOG_KERNRW,
-} RWWrapLogLevel;
+} KernInfraLogLevel;
 
 typedef struct {
     void (*remote_reader)(addr_t addr, void *buf, size_t size);
@@ -21,7 +21,7 @@ typedef struct {
     void (*addr_writer)(addr_t addr, addr_t val);
     addr_t (*addr_processor)(addr_t addr);
     void (*vDoLog)(const char * format, va_list args);
-    RWWrapLogLevel logLevel;
+    KernInfraLogLevel logLevel;
 } KernInfraContext;
 
 extern KernInfraContext kerninfra_context;
