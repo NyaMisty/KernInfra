@@ -27,7 +27,7 @@ ifdef USE_LIBKRW
 	kerninfra_LIBRARIES += krw
 	kerninfra_LDFLAGS += -Lrw_prov/rw_prov_libkrw/libkrw
 	kerninfra_FILES += rw_prov/rw_prov_libkrw/rw_prov_libkrw.c
-	kerninfra_CFLAGS += -DUSE_LIBKRW -I
+	kerninfra_CFLAGS += -DUSE_LIBKRW
 endif
 
 include $(THEOS_MAKE_PATH)/subproject.mk

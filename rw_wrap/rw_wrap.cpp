@@ -1,4 +1,6 @@
 #include "../rw_prov/rw_prov.h"
+
+#include <kern_context.h>
 #include "rw_wrap.hpp"
 #include <exception>
 #include <stdexcept>
@@ -59,8 +61,12 @@ void remote_writer_impl(addr_t addr, const void *buf, size_t size) {
     kernel_write(addr, buf, size);
 }
 
-void (*remote_reader)(addr_t addr, void *buf, size_t size) = remote_reader_impl;
-void (*remote_writer)(addr_t addr, const void *buf, size_t size) = remote_writer_impl;
-addr_t (*addr_reader)(addr_t addr) = remote_addr_reader_impl;
-void (*addr_writer)(addr_t addr, addr_t val) = remote_addr_writer_impl;
-addr_t (*addr_processor)(addr_t addr) = remote_addr_processor_impl;
+void prepare_rw_wrap(KernInfraContext *kerninfra_context) {
+    kerninfra_context->remote_reader = remote_reader_impl,
+    kerninfra_context->remote_writer = remote_writer_impl,
+    kerninfra_context->addr_reader = remote_addr_reader_impl,
+    kerninfra_context->addr_writer = remote_addr_writer_impl,
+    kerninfra_context->addr_processor = remote_addr_processor_impl,
+    0;
+    return;
+}

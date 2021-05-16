@@ -21,6 +21,8 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+#include "kern_context.h"
+
 typedef uint64_t addr_t;
 #define kaddr_t addr_t
 
@@ -379,7 +381,7 @@ pfinder_init_file(pfinder_t *pfinder, const char *filename) {
 										break;
 									}
 									pfinder->base = sg64.vmaddr;
-									printf("base: " KADDR_FMT "\n", sg64.vmaddr);
+									KERNINFRA_LOG(KERNLOG_INIT, "base: " KADDR_FMT "\n", sg64.vmaddr);
 								}
 								if(strncmp(sg64.segname, SEG_TEXT_EXEC, sizeof(sg64.segname)) == 0) {
 									if(find_section(p + sizeof(sg64), sg64, SECT_TEXT, &s64) != KERN_SUCCESS) {
@@ -387,21 +389,21 @@ pfinder_init_file(pfinder_t *pfinder, const char *filename) {
 									}
 									pfinder->sec_text.s64 = s64;
 									pfinder->sec_text.data = pfinder->kernel + s64.offset;
-									printf("sec_text_addr: " KADDR_FMT ", sec_text_off: 0x%" PRIX32 ", sec_text_sz: 0x%" PRIX64 "\n", s64.addr, s64.offset, s64.size);
+									KERNINFRA_LOG(KERNLOG_INIT, "sec_text_addr: " KADDR_FMT ", sec_text_off: 0x%" PRIX32 ", sec_text_sz: 0x%" PRIX64 "\n", s64.addr, s64.offset, s64.size);
 								} else if(strncmp(sg64.segname, SEG_TEXT, sizeof(sg64.segname)) == 0) {
 									if(find_section(p + sizeof(sg64), sg64, SECT_CSTRING, &s64) != KERN_SUCCESS || pfinder->kernel[s64.offset + s64.size - 1] != '\0') {
 										break;
 									}
 									pfinder->sec_cstring.s64 = s64;
 									pfinder->sec_cstring.data = pfinder->kernel + s64.offset;
-									printf("sec_cstring_addr: " KADDR_FMT ", sec_cstring_off: 0x%" PRIX32 ", sec_cstring_sz: 0x%" PRIX64 "\n", s64.addr, s64.offset, s64.size);
+									KERNINFRA_LOG(KERNLOG_INIT, "sec_cstring_addr: " KADDR_FMT ", sec_cstring_off: 0x%" PRIX32 ", sec_cstring_sz: 0x%" PRIX64 "\n", s64.addr, s64.offset, s64.size);
 								}
 							} else if(lc.cmd == LC_SYMTAB) {
 								if(lc.cmdsize != sizeof(cmd_symtab)) {
 									break;
 								}
 								memcpy(&cmd_symtab, p, sizeof(cmd_symtab));
-								printf("cmd_symtab_symoff: 0x%" PRIX32 ", cmd_symtab_nsyms: 0x%" PRIX32 ", cmd_symtab_stroff: 0x%" PRIX32 "\n", cmd_symtab.symoff, cmd_symtab.nsyms, cmd_symtab.stroff);
+								KERNINFRA_LOG(KERNLOG_INIT, "cmd_symtab_symoff: 0x%" PRIX32 ", cmd_symtab_nsyms: 0x%" PRIX32 ", cmd_symtab_stroff: 0x%" PRIX32 "\n", cmd_symtab.symoff, cmd_symtab.nsyms, cmd_symtab.stroff);
 								if(cmd_symtab.nsyms != 0 && (cmd_symtab.symoff > pfinder->kernel_sz || cmd_symtab.nsyms > (pfinder->kernel_sz - cmd_symtab.symoff) / sizeof(struct nlist_64) || cmd_symtab.stroff > pfinder->kernel_sz || cmd_symtab.strsize > pfinder->kernel_sz - cmd_symtab.stroff || cmd_symtab.strsize == 0 || pfinder->kernel[cmd_symtab.stroff + cmd_symtab.strsize - 1] != '\0')) {
 									break;
 								}
@@ -523,7 +525,7 @@ pfinder_init_kbase(pfinder_t *pfinder) {
 	if(pfinder->base + pfinder->kslide > pfinder->base && kread_buf(pfinder->base + pfinder->kslide, &mh64, sizeof(mh64)) == KERN_SUCCESS && mh64.magic == MH_MAGIC_64 && mh64.cputype == CPU_TYPE_ARM64 && mh64.filetype == MH_EXECUTE) {
 		pfinder->sec_text.s64.addr += pfinder->kslide;
 		pfinder->sec_cstring.s64.addr += pfinder->kslide;
-		printf("kbase: " KADDR_FMT ", kslide: " KADDR_FMT "\n", pfinder->base + pfinder->kslide, pfinder->kslide);
+		KERNINFRA_LOG(KERNLOG_INIT, "kbase: " KADDR_FMT ", kslide: " KADDR_FMT "\n", pfinder->base + pfinder->kslide, pfinder->kslide);
 		p_kbase = pfinder->base + pfinder->kslide;
 		p_kslide = pfinder->kslide;
 		return KERN_SUCCESS;
@@ -572,7 +574,7 @@ pfinder_init_offsets(void) {
 	char *boot_path;
 
 	if((boot_path = get_boot_path()) != NULL) {
-		printf("boot_path: %s\n", boot_path);
+		KERNINFRA_LOG(KERNLOG_INIT, "boot_path: %s\n", boot_path);
 		if(pfinder_init_file(&pfinder, boot_path) == KERN_SUCCESS) {
 			//pfinder.kslide = kslide;
 			uint64_t prov_kslide = 0, prov_kbase = 0;
@@ -582,15 +584,15 @@ pfinder_init_offsets(void) {
 			} else if (prov_kslide) {
 				pfinder.kslide = prov_kslide;
 			} else {
-				printf("failed to retrive kslide!!!");
+				KERNINFRA_LOG(KERNLOG_INIT, "failed to retrive kslide!!!");
 				return KERN_FAILURE;
 			}
 			
-			printf("got kslide: %llx\n", pfinder.kslide);
+			KERNINFRA_LOG(KERNLOG_INIT, "got kslide: %llx\n", pfinder.kslide);
 			if(pfinder_init_kbase(&pfinder) == KERN_SUCCESS && (kernproc = pfinder_kernproc(pfinder)) != 0) {
-				printf("kernproc: " KADDR_FMT "\n", kernproc);
+				KERNINFRA_LOG(KERNLOG_INIT, "kernproc: " KADDR_FMT "\n", kernproc);
 				if((allproc = pfinder_allproc(pfinder)) != 0) {
-					printf("allproc: " KADDR_FMT "\n", allproc);
+					KERNINFRA_LOG(KERNLOG_INIT, "allproc: " KADDR_FMT "\n", allproc);
 					ret = KERN_SUCCESS;
 				}
 			}
