@@ -3,7 +3,9 @@ ARCHS = arm64 arm64e
 
 include $(THEOS)/makefiles/common.mk
 
-USE_LIBKRW = 1
+# USE_TFP0 = 1
+# USE_LIBKRW = 1
+# USE_LIBKERNRW = 1
 
 SUBPROJECT_NAME = kerninfra
 LIBRARY_NAME = kerninfra
@@ -28,6 +30,13 @@ ifdef USE_LIBKRW
 	kerninfra_LDFLAGS += -Lrw_prov/rw_prov_libkrw/libkrw
 	kerninfra_FILES += rw_prov/rw_prov_libkrw/rw_prov_libkrw.c
 	kerninfra_CFLAGS += -DUSE_LIBKRW
+endif
+ifdef USE_LIBKERNRW
+	#kerninfra_FRAMEWORKS += kerninfra/libkernrw
+	kerninfra_LIBRARIES += kernrw
+	kerninfra_LDFLAGS += -Lrw_prov/rw_prov_libkernrw/libkernrw
+	kerninfra_FILES += rw_prov/rw_prov_libkernrw/rw_prov_libkernrw.c
+	kerninfra_CFLAGS += -DUSE_LIBKERNRW
 endif
 
 include $(THEOS_MAKE_PATH)/subproject.mk

@@ -43,8 +43,14 @@ KernInfra is built to address the following engineering issues:
     XXXX_LDFLAGS += -Lkerninfra/libs
     XXXX_CCFLAGS += -std=c++2a
     ```
-3. include it: `#include "kerninfra/kerninfra.hpp"`
-4. call init func: 
+3. enable one of the kern R/W providers in your theos makefile
+    ```Makefile
+    export USE_TFP0=1
+    export USE_LIBKRW=1
+    export USE_LIBKERNRW=1
+    ```
+4. include it: `#include "kerninfra/kerninfra.hpp"`
+5. call init func: 
     ```cpp
     if (!!init_kerninfra()) {
         fprintf(stderr, "Failed to init kerninfra!!\n");
@@ -53,7 +59,7 @@ KernInfra is built to address the following engineering issues:
         DLOG("successfully initialized kerninfra!");
     }
     ```
-5. profit~, see my fouldecrypt for a simple example, documents are located in docs/ directory ;)
+6. profit~, see my fouldecrypt for a simple example, documents are located in docs/ directory ;)
 
 ## Contribute
 
@@ -64,4 +70,5 @@ KernInfra is built to address the following engineering issues:
 ## Credits
 - includes/fmt: it's fmt.dev's fmt, thanks a lot
 - libkrw: thanks @Siguza
+- libkernrw: thanks @CoolStar
 - libdimento: thanks @0x7ff (original dev) & @ichitaso (contributor)

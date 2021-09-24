@@ -1,3 +1,6 @@
 [submodule "rw_prov/rw_prov_libkrw/libkrw"]
 	path = rw_prov/rw_prov_libkrw/libkrw
 	url = https://github.com/Siguza/libkrw
+[submodule "rw_prov/rw_prov_libkernrw/libkernrw"]
+	path = rw_prov/rw_prov_libkernrw/libkernrw
+	url = https://github.com/ProcursusTeam/libkernrw
