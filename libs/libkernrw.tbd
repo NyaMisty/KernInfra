@@ -1,0 +1,11 @@
+--- !tapi-tbd-v2
+archs:           [ arm64, arm64e ]
+platform:        ios
+flags:           [ not_app_extension_safe ]
+install-name:    '/usr/lib/libkernrw.0.dylib'
+exports:
+  - archs:           [ arm64, arm64e ]
+    symbols:         [ _requestKernRw, _kernRW_read32, _kernRW_read64, _kernRW_write32, _kernRW_write64, 
+                       _kernRW_readbuf, _kernRW_writebuf, _kernRW_getKernelBase, _kernRW_getKernelProc,
+                       _kernRW_getAllProc ]
+...
